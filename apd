@@ -1,0 +1,157 @@
+#!/bin/bash
+echo $'
+  / _ | / _ \/ _ \  ____  / _ |___/ /  _____ ____  _______ ___/ /
+ / __ |/ // / ___/ /___/ / __ / _  / |/ / _ `/ _ \/ __/ -_) _  /
+/_/ |_/____/_/          /_/ |_\_,_/|___/\_,_/_//_/\__/\__/\_,_/
+
+   ___                  ___                  __             __
+  / _ \___  _______    / _ \___ _    _____  / /__  ___ ____/ /__ ____
+ / ___/ _ \/ __/ _ \  / // / _ \ |/|/ / _ \/ / _ \/ _ `/ _  / -_) __/
+/_/   \___/_/ /_//_/ /____/\___/__,__/_//_/_/\___/\_,_/\_,_/\__/_/
+                                                                     '
+
+
+#categorias
+declare -A category
+category[1,nome]="Novos"
+category[1,url_inicial]="https://xvideos.com"
+category[1,url_paginas]="https://www.xvideos.com/new/"
+category[2,nome]="CreamPie"
+category[2,url_inicial]="https://www.xvideos.com/c/Creampie-40"
+category[2,url_paginas]="https://www.xvideos.com/c/Creampie-40/"
+category[3,nome]="Amador"
+category[3,url_inicial]="https://www.xvideos.com/tags/amador"
+category[3,url_paginas]="https://www.xvideos.com/tags/amador/"
+category[4,nome]="BR"
+category[4,url_inicial]="https://www.xvideos.com/lang/portugues"
+category[4,url_paginas]="https://www.xvideos.com/lang/portugues/"
+
+category[5,nome]="MAE"
+category[5,url_inicial]="https://www.xvideos.com/?k=mae&top"
+category[5,url_paginas]="https://www.xvideos.com/?k=mae&p="
+
+category[6,nome]="NOVINHA"
+category[6,url_inicial]="https://www.xvideos.com/?k=novinha&top"
+category[6,url_paginas]="https://www.xvideos.com/?k=novinha&"
+
+category[7,nome]="MAGRINHA"
+category[7,url_inicial]="https://www.xvideos.com/tags/skinny"
+category[7,url_paginas]="https://www.xvideos.com/tags/skinny/"
+
+category[8,nome]="LOIRA"
+category[8,url_inicial]="https://www.xvideos.com/tags/blonde"
+category[8,url_paginas]="https://www.xvideos.com/tags/blonde/"
+
+category[9,nome]="BRASILEIRA"
+category[9,url_inicial]="https://www.xvideos.com/tags/brasileira"
+category[9,url_paginas]="https://www.xvideos.com/tags/brasileira/"
+
+category[10,nome]="18ANOS"
+category[10,url_inicial]="https://www.xvideos.com/tags/18-year-old-porn"
+category[10,url_paginas]="https://www.xvideos.com/tags/18-year-old-porn/"
+
+category[11,nome]="HARDFUCK"
+category[11,url_inicial]="https://www.xvideos.com/tags/hard-fuck"
+category[11,url_paginas]="https://www.xvideos.com/tags/hard-fuck/"
+
+category[12,nome]="NERD"
+category[12,url_inicial]="https://www.xvideos.com/tags/nerd"
+category[12,url_paginas]="https://www.xvideos.com/tags/nerd/"
+
+category[13,nome]="NICEASS"
+category[13,url_inicial]="https://www.xvideos.com/tags/nice-ass"
+category[13,url_paginas]="https://www.xvideos.com/tags/nice-ass/"
+
+category[14,nome]="NICETITS"
+category[14,url_inicial]="https://www.xvideos.com/tags/nice-tits"
+category[14,url_paginas]="https://www.xvideos.com/tags/nice-tits/"
+
+categorias_nomes=""
+if [[ $1 == "encerrar" ]];
+then
+    echo "Encerrando APD GERAL"
+    kill $(pgrep -f "telegram*")
+    kill $(pgrep -f "annie")
+    kill $(pgrep -f "get_videos.php")
+    kill $(pgrep -f "telegram*")
+    kill $(pgrep -f "apd")
+elif [[ $1 == "autoload" ]];
+then
+    echo "Encerrando APD Remanescentes"
+    kill $(pgrep -f "annie") 2>/dev/null
+    kill $(pgrep -f "get_videos.php") 2>/dev/null
+    for number in {1..20}
+    do
+        echo $number
+        kill $(pgrep -f "apd $number") 2>/dev/null
+        if [ "${category[$number,nome]}" != '' ]; then
+            echo "Executando categoria $number"
+            ./apd ${number} 30  2>/dev/null &
+            #categorias_nomes="${categorias_nomes} ${number} - ${category[$number,nome]} "$'\n'
+        fi
+
+    done
+
+    exit
+
+elif [ ! $1 ]; then
+    for number in {1..20}
+    do
+        if [ "${category[$number,nome]}" != '' ]; then
+            categorias_nomes="${categorias_nomes} ${number} - ${category[$number,nome]} "$'\n'
+        fi
+
+    done
+    # echo $categorias_nomes
+    read -p "Escolha uma categoria para baixar:"$'\n'"${categorias_nomes}" categoria
+
+else
+
+
+    categoria=$1
+fi
+
+if [ ! $2 ]; then
+    read -p $'Escolha o número de paginas para baixar:\n' paginas
+
+else
+    paginas=$2
+fi
+# echo $categoria
+# echo "${category[$categoria,url_inicial]}"
+categoria_pasta=${category[$categoria,nome]}
+url_inicial=${category[$categoria,url_inicial]}
+url_paginas=${category[$categoria,url_paginas]}
+
+
+
+dir=(`pwd`)
+dirdownload="${dir}/downloads/$categoria_pasta"
+# echo $dirdownload
+if [ ! -d "$dirdownload" ]; then
+    mkdir $dirdownload
+fi
+cd $dir
+echo "Buscando Paginas para download"
+echo "php get_videos.php $categoria $paginas $dirdownload $url_inicial $url_paginas"
+urls=(`php get_videos.php $categoria $paginas "$dirdownload" $url_inicial $url_paginas`)
+echo "Iniciando Downloads que foram encontrados"
+    for x in "${urls[@]}";
+        do
+            IFS='/' read -ra ADDR <<< "$x"
+            for i in "${ADDR[@]}"; do
+                last=$i
+            done
+            if [  -f "$dirdownload/$last.info" ]; then
+                rm $dirdownload/$last.info
+            fi
+            annie -i $x >> $dirdownload/$last.info
+            echo "Category: $categoria" >> $dirdownload/$last.info
+            echo "URL: $x" >> $dirdownload/$last.info
+            annie -f low -o "$dirdownload" -O "$last" "$x"
+            echo $x
+            cat /dev/null > "$dirdownload/$last.mp4"
+           
+
+
+        done
