@@ -145,10 +145,10 @@ echo "Iniciando Downloads que foram encontrados"
             if [  -f "$dirdownload/$last.info" ]; then
                 rm $dirdownload/$last.info
             fi
-            annie -i $x >> $dirdownload/$last.info
+            ./annie -i $x >> $dirdownload/$last.info
             echo "Category: $categoria" >> $dirdownload/$last.info
             echo "URL: $x" >> $dirdownload/$last.info
-            annie -f low -o "$dirdownload" -O "$last" "$x"
+            ./annie -f low -o "$dirdownload" -O "$last" "$x"
             echo $x
             cat /dev/null > "$dirdownload/$last.mp4"
            
